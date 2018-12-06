@@ -15,9 +15,9 @@
 
 #include <boost/chrono.hpp>
 #include <boost/config.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/thread.hpp>
 #include <boost/throw_exception.hpp>
 
 #include <array>
@@ -27,6 +27,7 @@
 #include <stdexcept>
 #include <typeindex>
 #include <typeinfo>
+#include <thread>
 
 #ifndef CHAINBASE_NUM_RW_LOCKS
    #define CHAINBASE_NUM_RW_LOCKS 10
@@ -82,7 +83,7 @@ namespace chainbase {
 
    typedef boost::interprocess::interprocess_sharable_mutex read_write_mutex;
    typedef boost::interprocess::sharable_lock< read_write_mutex > read_lock;
-   typedef boost::unique_lock< read_write_mutex > write_lock;
+   typedef std::unique_lock< read_write_mutex > write_lock;
 
    /**
     *  Object ID type that includes the type of the object it references
@@ -985,7 +986,7 @@ namespace chainbase {
             if( _read_only )
                BOOST_THROW_EXCEPTION( std::logic_error( "cannot acquire write lock on read-only process" ) );
 
-            write_lock lock( _rw_manager->current_lock(), boost::defer_lock_t() );
+            write_lock lock( _rw_manager->current_lock(), std::defer_lock_t() );
 #ifdef CHAINBASE_CHECK_LOCKING
             BOOST_ATTRIBUTE_UNUSED
             int_incrementer ii( _write_lock_count );
@@ -997,11 +998,11 @@ namespace chainbase {
             }
             else
             {
-               while( !lock.timed_lock( boost::posix_time::microsec_clock::local_time() + boost::posix_time::microseconds( wait_micro ) ) )
+               while( !lock.try_lock_for( std::chrono::microseconds( wait_micro ) ) )
                {
                   _rw_manager->next_lock();
                   std::cerr << "Lock timeout, moving to lock " << _rw_manager->current_lock_num() << std::endl;
-                  lock = write_lock( _rw_manager->current_lock(), boost::defer_lock_t() );
+                  lock = write_lock( _rw_manager->current_lock(), std::defer_lock_t() );
                }
             }
 
