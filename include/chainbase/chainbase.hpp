@@ -41,6 +41,8 @@
    #define CHAINBASE_REQUIRE_WRITE_LOCK(m, t)
 #endif
 
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+
 namespace chainbase {
 
    namespace bip = boost::interprocess;
