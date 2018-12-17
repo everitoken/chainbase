@@ -719,7 +719,7 @@ namespace chainbase {
          struct session {
             public:
                session( session&& s ):_index_sessions( std::move(s._index_sessions) ),_revision( s._revision ){}
-               session( vector<std::unique_ptr<abstract_session>>&& s ):_index_sessions( std::move(s) )
+               session( vector<std::unique_ptr<abstract_session>>&& s ) noexcept :_index_sessions( std::move(s) )
                {
                   if( _index_sessions.size() )
                      _revision = _index_sessions[0]->revision();
@@ -748,6 +748,11 @@ namespace chainbase {
                }
 
                int64_t revision()const { return _revision; }
+
+               session& operator=(session&& rhs) noexcept {
+                  *this = std::move(rhs);
+                  return *this;
+               }
 
             private:
                friend class database;
