@@ -750,6 +750,9 @@ namespace chainbase {
                int64_t revision()const { return _revision; }
 
                session& operator=(session&& rhs) noexcept {
+                  if(this == &rhs) {
+                     return *this;
+                  }
                   *this = std::move(rhs);
                   return *this;
                }
