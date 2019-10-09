@@ -705,7 +705,6 @@ namespace chainbase {
          database(database&&) = default;
          database& operator=(database&&) = default;
          bool is_read_only() const { return _read_only; }
-         void flush();
          void set_require_locking( bool enable_require_locking );
 
 #ifdef CHAINBASE_CHECK_LOCKING
